@@ -54,5 +54,26 @@ pipeline {
                 }
             }
         }
+
+        stage('Copy Files to EC2') {
+            steps {
+                sshagent(['ec2-docker-ssh']) {
+                    bat '''
+                        scp -o StrictHostKeyChecking=no target/company-app-1.0.jar ubuntu@3.111.31.216:/home/ubuntu/
+                        scp -o StrictHostKeyChecking=no Dockerfile ubuntu@3.111.31.216:/home/ubuntu/
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sshagent(['ec2-docker-ssh']) {
+                    bat '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@3.111.31.216 "cd /home/ubuntu && docker build -t company-app:1.0 ."
+                    '''
+                }
+            }
+        }
     }
 }
