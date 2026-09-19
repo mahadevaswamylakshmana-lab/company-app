@@ -75,5 +75,27 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy Container') {
+            steps {
+                sshagent(['ec2-docker-ssh']) {
+                    bat '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@3.111.31.216 "docker rm -f company-app 2>/dev/null || true"
+                        ssh -o StrictHostKeyChecking=no ubuntu@3.111.31.216 "docker run -d --name company-app company-app:1.0"
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Container') {
+            steps {
+                sshagent(['ec2-docker-ssh']) {
+                    bat '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@3.111.31.216 "docker ps"
+                        ssh -o StrictHostKeyChecking=no ubuntu@3.111.31.216 "docker logs company-app"
+                    '''
+                }
+            }
+        }
     }
 }
